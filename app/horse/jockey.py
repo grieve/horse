@@ -12,9 +12,16 @@ from . import database
 from .bridles.base import CommandBridle
 from .bridles.base import ListenerBridle
 from .bridles.base import WebhookBridle
+from .bridles.base import EventBridle
 from .bridles.base import BridleModel
 
-DO_NOT_REGISTER = [CommandBridle, ListenerBridle, WebhookBridle, BridleModel]
+DO_NOT_REGISTER = [
+    CommandBridle,
+    ListenerBridle,
+    WebhookBridle,
+    EventBridle,
+    BridleModel
+]
 
 
 class Jockey(object):
@@ -39,9 +46,13 @@ class Jockey(object):
 
     def load_bridles(self):
         self.bridles = {
+            "event": [],
             "command": [],
             "listener": [],
-            "webhook": []
+            "webhook": {
+                "GET": [],
+                "POST": []
+            }
         }
         self.bridle_models = []
 
@@ -75,7 +86,16 @@ class Jockey(object):
                             cls.Meta.path,
                             cls.__name__
                         ))
-                        self.bridles['webhook'].append(cls(self))
+                        self.bridles['webhook'][cls.Meta.method].append(
+                            cls(self)
+                        )
+
+                    elif issubclass(cls, EventBridle):
+                        logging.info('\tEvent: {0} -> {1}'.format(
+                            cls.Meta.event,
+                            cls.__name__
+                        ))
+                        self.bridles['event'].append(cls(self))
 
                     elif issubclass(cls, BridleModel):
                         logging.info('\tModel: {0}'.format(cls.__name__))
@@ -84,13 +104,41 @@ class Jockey(object):
         database.verify_models(self.bridle_models)
 
     def handle_socket(self, data):
-        logging.info('Handling socket event')
+        logging.info('Handling socket event: Type={0}'.format(data['type']))
+        if data['type'] == 'message' and 'subtype' not in data:
+            self.handle_message(data)
+        else:
+            for bridle in self.bridles['event']:
+                if data['type'] == bridle.Meta.event:
+                    bridle.execute(data)
+
+    def handle_message(self, data):
+        logging.debug(data)
+        for bridle in self.bridles['listener']:
+            match = bridle._pattern.search(data['text'])
+            if match:
+                bridle.execute(
+                    data['user'],
+                    data['channel'],
+                    match,
+                    data['text']
+                )
 
     def handle_http_get(self, path, params):
-        pass
+        logging.info('Handling GET webhook: {0}'.format(path))
+        for bridle in self.bridles['webhook']['GET']:
+            if bridle.Meta.path == path:
+                return bridle.execute(path, params)
+
+        return ""
 
     def handle_http_post(self, path, data):
-        pass
+        logging.info('Handling POST webhook: {0}'.format(path))
+        for bridle in self.bridles['webhook']['POST']:
+            if bridle.Meta.path == path:
+                return bridle.execute(path, data)
+
+        return ""
 
     def handle_command(self, data):
         logging.info('Handling command event')
@@ -109,14 +157,11 @@ class Jockey(object):
 
             if bridle.Meta.command == command:
                 try:
-                    response = bridle.execute(
+                    return bridle.execute(
                         data['user_id'],
                         data['channel_id'],
                         operands[1:]
                     )
-                    if not response:
-                        response = ""
-                    return response
                 except:
                     traceback.print_exc()
                     return "Failure: '{0}'".format(data['text'])
