@@ -9,3 +9,9 @@ shell: build
 
 ngrok:
 	ngrok http 5000
+
+clean:
+	find . -name "*.pyc" -exec rm -rf {} \;
+	find . -name "*.swp" -exec rm -rf {} \;
+	find . -name "*.swo" -exec rm -rf {} \;
+	find . -name "node_modules" -exec rm -rf '{}' +
