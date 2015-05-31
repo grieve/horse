@@ -14,8 +14,8 @@ class SocketServer(websocket.WebSocketApp):
         response = requests.get('https://slack.com/api/rtm.start', params={
             "token": config.SLACK_API_TOKEN
         })
-        data = response.json()
-        self.url = data['url']
+        self.metadata = response.json()
+        self.url = self.metadata['url']
         self.keep_running = True
         self.last_ping_tm = 0
         self.header = []

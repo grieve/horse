@@ -9,6 +9,7 @@ from . import config
 from . import slack
 from . import servers
 from . import database
+from . import models
 from .bridles.base import CommandBridle
 from .bridles.base import ListenerBridle
 from .bridles.base import WebhookBridle
@@ -32,6 +33,7 @@ class Jockey(object):
         self.http = servers.HTTPServer(self)
         self.slack = slack.API(config.SLACK_API_TOKEN)
         database.configure()
+        self.load_metadata()
         self.load_bridles()
         logging.info('Jockey ready.')
 
@@ -43,6 +45,42 @@ class Jockey(object):
         logging.info('Jockey started.')
         while True:
             pass
+
+    def get_user(self, id):
+        query = models.User.selectBy(string_id=id)
+        results = list(query)
+        if len(results) > 0:
+            return results[0]
+        else:
+            return None
+
+    def get_channel(self, id):
+        query = models.Channel.selectBy(string_id=id)
+        results = list(query)
+        if len(results) > 0:
+            return results[0]
+        else:
+            return None
+
+    def load_metadata(self):
+        for user in self.socket.metadata['users']:
+            if user['deleted']:
+                continue
+            if not self.get_user(user['id']):
+                models.User(
+                    string_id=user['id'],
+                    username=user['name'],
+                    real_name=user['profile']['real_name_normalized'],
+                    image=user['profile']['image_72']
+                )
+        for channel in self.socket.metadata['channels']:
+            if channel['is_archived']:
+                continue
+            if not self.get_channel(channel['id']):
+                models.Channel(
+                    string_id=channel['id'],
+                    name=channel['name']
+                )
 
     def load_bridles(self):
         self.bridles = {
@@ -105,8 +143,20 @@ class Jockey(object):
 
     def handle_socket(self, data):
         logging.info('Handling socket event: Type={0}'.format(data['type']))
+
+        if 'user' in data:
+            user = self.get_user(data['user'])
+            if user is not None:
+                data['user'] = user
+
+        if 'channel' in data:
+            channel = self.get_channel(data['channel'])
+            if channel is not None:
+                data['channel'] = channel
+
         if data['type'] == 'message' and 'subtype' not in data:
             self.handle_message(data)
+
         else:
             for bridle in self.bridles['event']:
                 if data['type'] == bridle.Meta.event:
@@ -151,6 +201,12 @@ class Jockey(object):
             logging.error('Malformed command request')
             return 'Malformed command request'
 
+        if 'user_id' in data:
+            user = self.get_user(data['user_id'])
+
+        if 'channel_id' in data:
+            channel = self.get_channel(data['channel_id'])
+
         operands = data['text'].split(' ', 1)
         command = operands[0]
         for bridle in self.bridles['command']:
@@ -158,8 +214,8 @@ class Jockey(object):
             if bridle.Meta.command == command:
                 try:
                     return bridle.execute(
-                        data['user_id'],
-                        data['channel_id'],
+                        user,
+                        channel,
                         operands[1:]
                     )
                 except:
