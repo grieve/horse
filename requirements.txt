@@ -1,3 +1,4 @@
 websocket-client
 requests
 sqlobject
+flask

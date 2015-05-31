@@ -17,8 +17,8 @@ class Jockey(object):
 
     def __init__(self):
         logging.info('Jockey initialising.')
-        self.socket = servers.Socket(self.handle_socket)
-        self.http = servers.HTTP(self.handle_http)
+        self.socket = servers.SocketServer(self)
+        self.http = servers.HTTPServer(self)
         self.slack = slack.API(config.SLACK_API_TOKEN)
         database.configure()
         self.load_bridles()
@@ -56,19 +56,37 @@ class Jockey(object):
     def handle_socket(self, data):
         logging.info('Handling socket event')
 
-    def handle_http(self, path, data):
-        logging.info('Handling http event')
-        operands = data['text'][0].split(' ', 1)
+    def handle_http_get(self, path, params):
+        pass
+
+    def handle_http_post(self, path, data):
+        pass
+
+    def handle_command(self, data):
+        logging.info('Handling command event')
+
+        if (
+            'text' not in data or
+            'user_id' not in data or
+            'channel_id' not in data
+        ):
+            logging.error('Malformed command request')
+            return 'Malformed command request'
+
+        operands = data['text'].split(' ', 1)
         command_word = operands[0]
         for bridle in self.bridles:
             if bridle.Meta.command_word == command_word:
                 try:
                     response = bridle.handle_command(
-                        data['user_id'][0],
-                        data['channel_id'][0],
+                        data['user_id'],
+                        data['channel_id'],
                         operands[1:]
                     )
+                    if not response:
+                        response = ""
                     return response
                 except:
                     traceback.print_exc()
-                    return "Failure: '{0}'".format(data['text'][0])
+                    return "Failure: '{0}'".format(data['text'])
+        return "Unknown command!"
