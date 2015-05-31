@@ -1,6 +1,7 @@
 # local additions
 
 .env
+.data/
 
 # Created by https://www.gitignore.io
 
