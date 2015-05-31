@@ -6,11 +6,14 @@ DATABASE_LOCATION = os.getenv('HORSE_DATABASE_PATH', '')
 SLACK_API_TOKEN = os.getenv('SLACK_API_TOKEN', '')
 FORECASTIO_API_TOKEN = os.getenv('FORECASTIO_API_TOKEN', '')
 IMGUR_API_TOKEN = os.getenv('IMGUR_API_TOKEN', '')
+GIPHY_API_TOKEN = os.getenv('GIPHY_API_TOKEN', '')
 
 BRIDLES = [
     'horse.bridles.core.help',
     'horse.bridles.core.uptime',
-    'horse.bridles.core.weather'
+    'horse.bridles.core.weather',
+    'horse.bridles.fun.flashy',
+    'horse.bridles.fun.gifs'
 ]
 
 logging.basicConfig(
