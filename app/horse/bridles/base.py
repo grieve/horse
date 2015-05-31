@@ -61,5 +61,14 @@ class WebhookBridle(Bridle):
         return ""
 
 
+class EventBridle(Bridle):
+
+    class Meta(Bridle.Meta):
+        event = ''
+
+    def execute(self, data):
+        return ""
+
+
 class BridleModel(models.Base):
     pass
