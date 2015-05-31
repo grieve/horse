@@ -8,6 +8,8 @@ ADD ./app /app
 
 WORKDIR /app
 
+VOLUME ["/data"]
+
 CMD ["python", "run.py"]
 
 EXPOSE 5000
