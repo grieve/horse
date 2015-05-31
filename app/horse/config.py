@@ -7,7 +7,7 @@ DATABASE_LOCATION = os.getenv('HORSE_DATABASE_PATH', '')
 
 BRIDLES = [
     'horse.bridles.core.uptime',
-    'horse.bridles.core.admin_commands'
+    'horse.bridles.core.help'
 ]
 
 logging.basicConfig(

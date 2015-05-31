@@ -1,21 +1,18 @@
+import re
+
+
 from .. import models
 
 
 class Bridle(object):
 
     class Meta:
-        command_word = ''
         display_name = 'Horse'
         display_icon = 'http://ryangrieve.com/labs/slack_icons/horse.png'
         description = 'No description provided'
-        help_text = ['No help text provided']
-        secret = False
 
     def __init__(self, jockey):
         self.jockey = jockey
-
-    def handle_command(self, user, channel, operands):
-        return None
 
     def message(self, channel, message, **kwargs):
         if 'username' not in kwargs:
@@ -28,6 +25,40 @@ class Bridle(object):
             text=message,
             **kwargs
         )
+
+
+class CommandBridle(Bridle):
+
+    class Meta(Bridle.Meta):
+        command = ''
+        help_text = ['No help text provided']
+        secret = False
+
+    def execute(self, user, channel, operands):
+        return ""
+
+
+class ListenerBridle(Bridle):
+
+    class Meta(Bridle.Meta):
+        regex = ''
+
+    def __init__(self, jockey):
+        super(ListenerBridle, self).__init__(jockey)
+        self._pattern = re.compile(self.Meta.regex)
+
+    def execute(self, user, channel, context):
+        return ""
+
+
+class WebhookBridle(Bridle):
+
+    class Meta(Bridle.Meta):
+        method = 'GET'
+        path = ''
+
+    def execute(self, path, data):
+        return ""
 
 
 class BridleModel(models.Base):

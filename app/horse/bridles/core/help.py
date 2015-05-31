@@ -1,22 +1,22 @@
-from ..base import Bridle
+from ..base import CommandBridle
 
 
-class Inventory(Bridle):
+class Inventory(CommandBridle):
 
-    class Meta(Bridle.Meta):
-        command_word = 'inventory'
+    class Meta(CommandBridle.Meta):
+        command = 'inventory'
         display_name = 'Horse Help'
         display_icon = 'http://ryangrieve.com/labs/slack_icons/help.png'
         description = "Lists all bridles currently available."
         help_text = ["Usage: `/horse inventory`"]
 
-    def handle_command(self, user, channel, operands):
+    def execute(self, user, channel, operands):
         bridles = ", ".join(
-            '_%s_' % x.Meta.command_word
-            for x in self.jockey.bridles
+            '_%s_' % x.Meta.command
+            for x in self.jockey.bridles['command']
             if not x.Meta.secret
-            and x.Meta.command_word != ""
-            and not x.Meta.command_word.startswith('_')
+            and x.Meta.command != ""
+            and not x.Meta.command.startswith('_')
         )
         self.message(
             channel,
@@ -24,23 +24,23 @@ class Inventory(Bridle):
         )
 
 
-class Help(Bridle):
+class Help(CommandBridle):
 
-    class Meta(Bridle.Meta):
-        command_word = 'help'
+    class Meta(CommandBridle.Meta):
+        command = 'help'
         display_name = 'Horse Help'
         display_icon = 'http://ryangrieve.com/labs/slack_icons/help.png'
         description = "Prints help and usage information on available bridles"
         help_text = ["Usage: `/horse help [bridle-name]`"]
 
-    def handle_command(self, user, channel, operands):
+    def execute(self, user, channel, operands):
         if len(operands) > 0:
             bridle_name = operands[0]
             bridle = None
-            for m in self.jockey.bridles:
+            for m in self.jockey.bridles['command']:
                 if m.__class__.__name__ == bridle_name:
                     bridle = m
-                elif m.Meta.command_word == bridle_name:
+                elif m.Meta.command == bridle_name:
                     bridle = m
             if bridle:
                 msg = "%s - %s" % (

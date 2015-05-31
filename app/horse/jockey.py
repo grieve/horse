@@ -9,8 +9,12 @@ from . import config
 from . import slack
 from . import servers
 from . import database
-from .bridles.base import Bridle
+from .bridles.base import CommandBridle
+from .bridles.base import ListenerBridle
+from .bridles.base import WebhookBridle
 from .bridles.base import BridleModel
+
+DO_NOT_REGISTER = [CommandBridle, ListenerBridle, WebhookBridle, BridleModel]
 
 
 class Jockey(object):
@@ -34,20 +38,46 @@ class Jockey(object):
             pass
 
     def load_bridles(self):
-        self.bridles = []
+        self.bridles = {
+            "command": [],
+            "listener": [],
+            "webhook": []
+        }
         self.bridle_models = []
+
         for bridle_path in config.BRIDLES:
             logging.info('Loading Bridle: {0}'.format(bridle_path))
             bridle_module = importlib.import_module(bridle_path)
+
             for cls in bridle_module.__dict__.values():
                 if inspect.isclass(cls):
-                    if issubclass(cls, Bridle) and cls != Bridle:
+
+                    if cls in DO_NOT_REGISTER:
+                        continue
+
+                    if issubclass(cls, CommandBridle):
                         logging.info('\tCommand: {0} -> {1}'.format(
-                            cls.Meta.command_word,
+                            cls.Meta.command,
                             cls.__name__
                         ))
-                        self.bridles.append(cls(self))
-                    elif issubclass(cls, BridleModel) and cls != BridleModel:
+                        self.bridles['command'].append(cls(self))
+
+                    elif issubclass(cls, ListenerBridle):
+                        logging.info('\tListener: {0} -> {1}'.format(
+                            cls.Meta.regex,
+                            cls.__name__
+                        ))
+                        self.bridles['listener'].append(cls(self))
+
+                    elif issubclass(cls, WebhookBridle):
+                        logging.info('\tWebhook: {0}:{1} -> {2}'.format(
+                            cls.Meta.method,
+                            cls.Meta.path,
+                            cls.__name__
+                        ))
+                        self.bridles['webhook'].append(cls(self))
+
+                    elif issubclass(cls, BridleModel):
                         logging.info('\tModel: {0}'.format(cls.__name__))
                         self.bridle_models.append(cls)
 
@@ -74,11 +104,12 @@ class Jockey(object):
             return 'Malformed command request'
 
         operands = data['text'].split(' ', 1)
-        command_word = operands[0]
-        for bridle in self.bridles:
-            if bridle.Meta.command_word == command_word:
+        command = operands[0]
+        for bridle in self.bridles['command']:
+
+            if bridle.Meta.command == command:
                 try:
-                    response = bridle.handle_command(
+                    response = bridle.execute(
                         data['user_id'],
                         data['channel_id'],
                         operands[1:]
@@ -89,4 +120,5 @@ class Jockey(object):
                 except:
                     traceback.print_exc()
                     return "Failure: '{0}'".format(data['text'])
+
         return "Unknown command!"

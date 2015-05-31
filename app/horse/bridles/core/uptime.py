@@ -1,14 +1,14 @@
 import datetime
 
-from ..base import Bridle
+from ..base import CommandBridle
 
 
-class Uptime(Bridle):
+class Uptime(CommandBridle):
 
-    class Meta(Bridle.Meta):
-        command_word = 'uptime'
+    class Meta(CommandBridle.Meta):
+        command = 'uptime'
 
-    def handle_command(self, user, channel, operands):
+    def execute(self, user, channel, operands):
         response = '> Uptime {0}'.format(
             datetime.datetime.now() - self.jockey.start_time
         )
