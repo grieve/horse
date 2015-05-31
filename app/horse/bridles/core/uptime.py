@@ -1,9 +1,6 @@
 import datetime
 
-import sqlobject
-
 from ..base import Bridle
-from ..base import BridleModel
 
 
 class Uptime(Bridle):
@@ -16,7 +13,3 @@ class Uptime(Bridle):
             datetime.datetime.now() - self.jockey.start_time
         )
         self.message(channel, response)
-
-
-class TestModel(BridleModel):
-    name = sqlobject.StringCol()
