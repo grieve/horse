@@ -8,4 +8,4 @@ shell: build
 	docker run -ti --rm -p 0.0.0.0:5000:5000 -v $(CURDIR)/app:/app horse-server bash
 
 ngrok:
-	ngrok http -subdomain=horse-20 5000
+	ngrok http 5000
