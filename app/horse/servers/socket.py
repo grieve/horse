@@ -1,3 +1,4 @@
+import json
 import thread
 import logging
 
@@ -39,7 +40,8 @@ class SocketServer(websocket.WebSocketApp):
         self.start()
 
     def on_message(self, socket, message):
-        self.jockey.handle_socket(message)
+        data = json.loads(message)
+        self.jockey.handle_socket(data)
 
     def on_ping(self, socket, ping):
         logging.info('Socket PING')
