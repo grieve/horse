@@ -42,7 +42,9 @@ class HTTPServer(object):
                     data = json.loads(request.body)
                     response = self.jockey.handle_http_post(path, data)
         logging.info('Outbound response: {0}'.format(response))
-        return response
+        if response is None:
+            response = ""
+        return str(response)
 
     def start(self):
         def run(*args):
