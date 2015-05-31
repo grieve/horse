@@ -1,0 +1,2 @@
+class BaseBridle(object):
+    pass
