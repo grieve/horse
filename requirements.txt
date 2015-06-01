@@ -3,3 +3,5 @@ requests
 sqlobject
 flask
 matplotlib
+pylast
+pillow
