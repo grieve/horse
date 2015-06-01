@@ -5,3 +5,4 @@ flask
 matplotlib
 pylast
 pillow
+oauth2client

@@ -1,6 +1,7 @@
 import os
 import logging
 
+HOSTNAME = os.getenv('VIRTUAL_HOST', '127.0.0.1:5000')
 DATABASE_LOCATION = os.getenv('HORSE_DATABASE_PATH', '')
 
 SLACK_API_TOKEN = os.getenv('SLACK_API_TOKEN', '')
@@ -13,6 +14,13 @@ LASTFM_API_SECRET = os.getenv('LASTFM_API_SECRET', '')
 LASTFM_USERNAME = os.getenv('LASTFM_USERNAME', '')
 LASTFM_PASSWORD = os.getenv('LASTFM_PASSWORD', '')
 
+GAPI_CLIENT_ID = os.getenv('GAPI_CLIENT_ID', '')
+GAPI_CLIENT_SECRET = os.getenv('GAPI_CLIENT_SECRET', '')
+GAPI_SCOPES = [
+    'https://www.googleapis.com/auth/calendar',
+    'https://www.googleapis.com/auth/drive'
+]
+
 BRIDLES = [
     'horse.bridles.core.help',
     'horse.bridles.core.uptime',
@@ -21,7 +29,8 @@ BRIDLES = [
     'horse.bridles.fun.gifs',
     'horse.bridles.fun.lastfm',
     'horse.bridles.fun.quotes',
-    'horse.bridles.fun.sexypaddy'
+    'horse.bridles.fun.sexypaddy',
+    'horse.bridles.google'
 ]
 
 logging.basicConfig(
