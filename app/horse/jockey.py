@@ -207,7 +207,7 @@ class Jockey(object):
         if 'channel_id' in data:
             channel = self.get_channel(data['channel_id'])
 
-        operands = data['text'].split(' ', 1)
+        operands = data['text'].split(' ')
         command = operands[0]
         for bridle in self.bridles['command']:
 

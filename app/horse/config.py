@@ -20,7 +20,8 @@ BRIDLES = [
     'horse.bridles.fun.flashy',
     'horse.bridles.fun.gifs',
     'horse.bridles.fun.lastfm',
-    'horse.bridles.fun.quotes'
+    'horse.bridles.fun.quotes',
+    'horse.bridles.fun.sexypaddy'
 ]
 
 logging.basicConfig(
