@@ -14,6 +14,7 @@ LASTFM_API_SECRET = os.getenv('LASTFM_API_SECRET', '')
 LASTFM_USERNAME = os.getenv('LASTFM_USERNAME', '')
 LASTFM_PASSWORD = os.getenv('LASTFM_PASSWORD', '')
 
+GAPI_API_TOKEN = os.getenv('GAPI_API_TOKEN', '')
 GAPI_CLIENT_ID = os.getenv('GAPI_CLIENT_ID', '')
 GAPI_CLIENT_SECRET = os.getenv('GAPI_CLIENT_SECRET', '')
 GAPI_SCOPES = [
@@ -30,7 +31,12 @@ BRIDLES = [
     'horse.bridles.fun.lastfm',
     'horse.bridles.fun.quotes',
     'horse.bridles.fun.sexypaddy',
-    'horse.bridles.google'
+    'horse.bridles.google.auth',
+    'horse.bridles.google.drive',
+    'horse.bridles.google.calendar',
+    'horse.bridles.google.search',
+    'horse.bridles.google.images',
+    'horse.bridles.google.maps',
 ]
 
 logging.basicConfig(

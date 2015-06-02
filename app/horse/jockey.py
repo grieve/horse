@@ -94,7 +94,10 @@ class Jockey(object):
         }
         self.bridle_models = []
 
+        logging.info("")
+        logging.info('<<<< START Loading Bridles >>>>')
         for bridle_path in config.BRIDLES:
+            logging.info("")
             logging.info('Loading Bridle: {0}'.format(bridle_path))
             bridle_module = importlib.import_module(bridle_path)
 
@@ -139,13 +142,27 @@ class Jockey(object):
                         logging.info('\tModel: {0}'.format(cls.__name__))
                         self.bridle_models.append(cls)
 
+        logging.info("")
         database.verify_models(self.bridle_models)
+        logging.info('<<<< END Loading Bridles >>>>')
+        logging.info("")
 
     def handle_socket(self, data):
         logging.info('Handling socket event: Type={0}'.format(data['type']))
 
         if 'user' in data:
-            user = self.get_user(data['user'])
+            if isinstance(data['user'], basestring):
+                user = self.get_user(data['user'])
+            elif isinstance(data['user'], dict):
+                user = self.get_user(data['user']['id'])
+                if user is None:
+                    user = data['user']
+                    user = models.User(
+                        string_id=user['id'],
+                        username=user['name'],
+                        real_name=user['profile']['real_name_normalized'],
+                        image=user['profile']['image_72']
+                    )
             if user is not None:
                 data['user'] = user
 
