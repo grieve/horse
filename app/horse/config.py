@@ -22,6 +22,8 @@ GAPI_SCOPES = [
     'https://www.googleapis.com/auth/drive'
 ]
 
+GOOGLE_APPS_DOMAIN = os.getenv('GOOGLE_APPS_DOMAIN', '')
+
 BRIDLES = [
     'horse.bridles.core.help',
     'horse.bridles.core.uptime',
@@ -37,6 +39,7 @@ BRIDLES = [
     'horse.bridles.google.search',
     'horse.bridles.google.images',
     'horse.bridles.google.maps',
+    'horse.bridles.google.hangouts',
 ]
 
 logging.basicConfig(
