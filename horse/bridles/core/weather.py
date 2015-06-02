@@ -5,9 +5,9 @@ from cStringIO import StringIO
 
 import matplotlib.pyplot as plt
 
-from ... import config
-from ..base import CommandBridle
-from ...utils import imgur
+import horse.config
+import horse.utils.imgur
+from horse.bridles.base import CommandBridle
 
 
 class ForecastIO(CommandBridle):
@@ -30,7 +30,7 @@ class ForecastIO(CommandBridle):
     def get_current_weather(self, location):
         coords = self.locations[location]
         url = "https://api.forecast.io/forecast/{0}/{1}?units=si".format(
-            config.FORECASTIO_API_TOKEN,
+            horse.config.FORECASTIO_API_TOKEN,
             coords
         )
         response = requests.get(url)
@@ -76,7 +76,7 @@ class WeatherGraph(ForecastIO):
         weather = self.get_current_weather(location)
         data = self.get_data(weather, operands)
         plot = self.draw_plot(data, location)
-        url = imgur.post_from_file(plot)
+        url = horse.utils.imgur.post_from_file(plot)
         self.message(channel, url)
 
     def get_data(self, weather):

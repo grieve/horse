@@ -5,14 +5,14 @@ import logging
 import requests
 import websocket
 
-from .. import config
+import horse.config
 
 
 class SocketServer(websocket.WebSocketApp):
 
     def __init__(self, jockey):
         response = requests.get('https://slack.com/api/rtm.start', params={
-            "token": config.SLACK_API_TOKEN
+            "token": horse.config.SLACK_API_TOKEN
         })
         self.metadata = response.json()
         self.url = self.metadata['url']

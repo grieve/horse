@@ -1,4 +1,4 @@
-from ..base import CommandBridle
+from horse.bridles.base import CommandBridle
 
 
 class Inventory(CommandBridle):

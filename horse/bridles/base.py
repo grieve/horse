@@ -1,7 +1,7 @@
 import re
 
 
-from .. import models
+import horse.models
 
 
 class Bridle(object):
@@ -70,5 +70,5 @@ class EventBridle(Bridle):
         return ""
 
 
-class BridleModel(models.Base):
+class BridleModel(horse.models.Base):
     pass

@@ -3,16 +3,14 @@ import logging
 import sqlobject
 from sqlobject.dberrors import OperationalError
 
-from . import config
-from . import models
+import horse.config
+import horse.models
 
 
 def configure():
-    db = sqlobject.connectionForURI(
-        'sqlite:{0}'.format(config.DATABASE_LOCATION)
-    )
+    db = sqlobject.connectionForURI(horse.config.DATABASE_URI)
     sqlobject.sqlhub.processConnection = db
-    for model in [models.User, models.Channel]:
+    for model in [horse.models.User, horse.models.Channel]:
         try:
             model.createTable()
         except OperationalError, err:

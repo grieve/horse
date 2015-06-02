@@ -4,20 +4,18 @@ https://github.com/grieve/horse
 """
 
 from os import path
-from codecs import open
 from setuptools import setup
+from setuptools import find_packages
 
 here = path.abspath(path.dirname(__file__))
 
-with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as f:
-    long_description = f.read()
-
 setup(
     name='horse',
-    version='2.0.0',
+    version='0.2.13',
 
     description='A chat bot framework for Slack',
-    long_description=long_description,
+    long_description="""
+""",
 
     url='https://github.com/grieve/horse',
 
@@ -42,7 +40,7 @@ setup(
 
     keywords='chatbot slack chat bot communication',
 
-    packages=['horse'],
+    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 
     install_requires=[
         'websocket-client',

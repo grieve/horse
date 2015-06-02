@@ -1,9 +1,0 @@
-websocket-client
-requests
-sqlobject
-flask
-matplotlib
-pylast
-pillow
-oauth2client
-google-api-python-client

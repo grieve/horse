@@ -1,6 +1,6 @@
 import datetime
 
-from ..base import CommandBridle
+from horse.bridles.base import CommandBridle
 
 
 class Uptime(CommandBridle):

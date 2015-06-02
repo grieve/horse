@@ -1,3 +1,4 @@
+import types
 import inspect
 import logging
 import datetime
@@ -5,23 +6,20 @@ import traceback
 import importlib
 
 
-from . import config
-from . import slack
-from . import servers
-from . import database
-from . import models
-from .bridles.base import CommandBridle
-from .bridles.base import ListenerBridle
-from .bridles.base import WebhookBridle
-from .bridles.base import EventBridle
-from .bridles.base import BridleModel
+import horse.config
+import horse.slack
+import horse.servers.http
+import horse.servers.socket
+import horse.database
+import horse.models
+import horse.bridles.base
 
 DO_NOT_REGISTER = [
-    CommandBridle,
-    ListenerBridle,
-    WebhookBridle,
-    EventBridle,
-    BridleModel
+    horse.bridles.base.CommandBridle,
+    horse.bridles.base.ListenerBridle,
+    horse.bridles.base.WebhookBridle,
+    horse.bridles.base.EventBridle,
+    horse.bridles.base.BridleModel
 ]
 
 
@@ -29,10 +27,10 @@ class Jockey(object):
 
     def __init__(self):
         logging.info('Jockey initialising.')
-        self.socket = servers.SocketServer(self)
-        self.http = servers.HTTPServer(self)
-        self.slack = slack.API(config.SLACK_API_TOKEN)
-        database.configure()
+        self.socket = horse.servers.socket.SocketServer(self)
+        self.http = horse.servers.http.HTTPServer(self)
+        self.slack = horse.slack.API(horse.config.SLACK_API_TOKEN)
+        horse.database.configure()
         self.load_metadata()
         self.load_bridles()
         logging.info('Jockey ready.')
@@ -47,7 +45,7 @@ class Jockey(object):
             pass
 
     def get_user(self, id):
-        query = models.User.selectBy(string_id=id)
+        query = horse.models.User.selectBy(string_id=id)
         results = list(query)
         if len(results) > 0:
             return results[0]
@@ -55,7 +53,7 @@ class Jockey(object):
             return None
 
     def get_channel(self, id):
-        query = models.Channel.selectBy(string_id=id)
+        query = horse.models.Channel.selectBy(string_id=id)
         results = list(query)
         if len(results) > 0:
             return results[0]
@@ -67,7 +65,7 @@ class Jockey(object):
             if user['deleted']:
                 continue
             if not self.get_user(user['id']):
-                models.User(
+                horse.models.User(
                     string_id=user['id'],
                     username=user['name'],
                     real_name=user['profile']['real_name_normalized'],
@@ -77,7 +75,7 @@ class Jockey(object):
             if channel['is_archived']:
                 continue
             if not self.get_channel(channel['id']):
-                models.Channel(
+                horse.models.Channel(
                     string_id=channel['id'],
                     name=channel['name']
                 )
@@ -96,10 +94,18 @@ class Jockey(object):
 
         logging.info("")
         logging.info('<<<< START Loading Bridles >>>>')
-        for bridle_path in config.BRIDLES:
+        for bridle_path in horse.config.BRIDLES:
             logging.info("")
             logging.info('Loading Bridle: {0}'.format(bridle_path))
-            bridle_module = importlib.import_module(bridle_path)
+            if isinstance(bridle_path, basestring):
+                bridle_module = importlib.import_module(
+                    bridle_path.replace('horse.ext.', 'horse_')
+                )
+            elif isinstance(bridle_path, types.ModuleType):
+                bridle_module = bridle_path
+            else:
+                logging.warning("\tFailed: {0}".format(bridle_path))
+                continue
 
             for cls in bridle_module.__dict__.values():
                 if inspect.isclass(cls):
@@ -107,21 +113,21 @@ class Jockey(object):
                     if cls in DO_NOT_REGISTER:
                         continue
 
-                    if issubclass(cls, CommandBridle):
+                    if issubclass(cls, horse.bridles.base.CommandBridle):
                         logging.info('\tCommand: {0} -> {1}'.format(
                             cls.Meta.command,
                             cls.__name__
                         ))
                         self.bridles['command'].append(cls(self))
 
-                    elif issubclass(cls, ListenerBridle):
+                    elif issubclass(cls, horse.bridles.base.ListenerBridle):
                         logging.info('\tListener: {0} -> {1}'.format(
                             cls.Meta.regex,
                             cls.__name__
                         ))
                         self.bridles['listener'].append(cls(self))
 
-                    elif issubclass(cls, WebhookBridle):
+                    elif issubclass(cls, horse.bridles.base.WebhookBridle):
                         logging.info('\tWebhook: {0}:{1} -> {2}'.format(
                             cls.Meta.method,
                             cls.Meta.path,
@@ -131,19 +137,19 @@ class Jockey(object):
                             cls(self)
                         )
 
-                    elif issubclass(cls, EventBridle):
+                    elif issubclass(cls, horse.bridles.base.EventBridle):
                         logging.info('\tEvent: {0} -> {1}'.format(
                             cls.Meta.event,
                             cls.__name__
                         ))
                         self.bridles['event'].append(cls(self))
 
-                    elif issubclass(cls, BridleModel):
+                    elif issubclass(cls, horse.bridles.base.BridleModel):
                         logging.info('\tModel: {0}'.format(cls.__name__))
                         self.bridle_models.append(cls)
 
         logging.info("")
-        database.verify_models(self.bridle_models)
+        horse.database.verify_models(self.bridle_models)
         logging.info('<<<< END Loading Bridles >>>>')
         logging.info("")
 
@@ -157,7 +163,7 @@ class Jockey(object):
                 user = self.get_user(data['user']['id'])
                 if user is None:
                     user = data['user']
-                    user = models.User(
+                    user = horse.models.User(
                         string_id=user['id'],
                         username=user['name'],
                         real_name=user['profile']['real_name_normalized'],
