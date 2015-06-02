@@ -11,7 +11,7 @@ here = path.abspath(path.dirname(__file__))
 
 setup(
     name='horse',
-    version='0.2.13',
+    version='0.2.14',
 
     description='A chat bot framework for Slack',
     long_description="""
